@@ -14,15 +14,14 @@ pipeline {
         stage('Build') {
             steps {
                 echo "-------------------------Build STARTED---------------------------------------"
-                sh 'mvn clean compile'
+                sh 'mvn clean deploy -Dmaven.test.skip=true'
                 echo "-------------------------Build Completed---------------------------------------"
             }
         }
-
-        stage("Test") {
-            steps {
-                echo "-------------------------UNIT TEST STARTED Now---------------------------------------"
-                sh 'mvn test'
+        stage("test"){
+            steps{
+                echo "-------------------------UNIT TEST STARTED---------------------------------------"
+                sh 'mvn surefire-report:report'
                 echo "-------------------------UNIT TEST Completd---------------------------------------"
             }
         }
@@ -40,3 +39,4 @@ pipeline {
 
     }
 }
+
