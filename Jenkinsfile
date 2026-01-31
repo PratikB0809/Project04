@@ -18,11 +18,11 @@ pipeline {
                 echo "-------------------------Build Completed---------------------------------------"
             }
         }
-        stage("test"){
+        stage("Test"){
             steps{
                 echo "-------------------------UNIT TEST STARTED---------------------------------------"
                 sh 'mvn surefire-report:report'
-                echo "-------------------------UNIT TEST Completd---------------------------------------"
+                echo "-------------------------UNIT TEST Completed---------------------------------------"
             }
         }
 
@@ -36,7 +36,17 @@ pipeline {
                 }
             }
         }
-
+        stage("Quality Gate") {
+            steps {
+                script {
+                     timeout(time: 1, unit: 'HOURS') {
+                     // Parameter indicates whether to set pipeline to UNSTABLE if Quality Gate fails
+                     // true = set pipeline to UNSTABLE, false = don't
+                     waitForQualityGate abortPipeline: true
+                    }
+                }
+            }
+        }
     }
 }
 
