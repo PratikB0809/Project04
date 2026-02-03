@@ -1,4 +1,5 @@
 def registry = 'https://trial6hz8gv.jfrog.io/'
+
 pipeline {
     agent {
         node {
@@ -19,8 +20,9 @@ pipeline {
                 echo "-------------------------Build Completed---------------------------------------"
             }
         }
-        stage("Test"){
-            steps{
+
+        stage("Test") {
+            steps {
                 echo "-------------------------UNIT TEST STARTED---------------------------------------"
                 sh 'mvn surefire-report:report'
                 echo "-------------------------UNIT TEST Completed---------------------------------------"
@@ -37,44 +39,50 @@ pipeline {
                 }
             }
         }
-   /*     stage("Quality Gate") {
+
+        /*
+        stage("Quality Gate") {
             steps {
                 script {
-                     timeout(time: 1, unit: 'HOURS') {
-                     // Parameter indicates whether to set pipeline to UNSTABLE if Quality Gate fails
-                     // true = set pipeline to UNSTABLE, false = don't
-                     waitForQualityGate abortPipeline: true
+                    timeout(time: 1, unit: 'HOURS') {
+                        waitForQualityGate abortPipeline: true
                     }
                 }
             }
-        }     */
-    }
+        }
+        */
 
-        
         stage("Jar Publish") {
             steps {
                 script {
                     echo '<--------------- Jar Publish Started --------------->'
-                     def server = Artifactory.newServer url:registry+"/artifactory" ,  credentialsId:"artifact-cred"
-                     def properties = "buildid=${env.BUILD_ID},commitid=${GIT_COMMIT}";
-                     def uploadSpec = """{
-                          "files": [
-                            {
-                              "pattern": "jarstaging/(*)",
-                              "target": "maven-remote-libs-release-local/{1}",
-                              "flat": "false",
-                              "props" : "${properties}",
-                              "exclusions": [ "*.sha1", "*.md5"]
-                            }
-                         ]
-                     }"""
-                     def buildInfo = server.upload(uploadSpec)
-                     buildInfo.env.collect()
-                     server.publishBuildInfo(buildInfo)
-                     echo '<--------------- Jar Publish Ended --------------->'  
-            
-            }
-        }   
-    }   
-}
 
+                    def server = Artifactory.newServer(
+                        url: registry + "/artifactory",
+                        credentialsId: "artifact-cred"
+                    )
+
+                    def properties = "buildid=${env.BUILD_ID},commitid=${GIT_COMMIT}"
+
+                    def uploadSpec = """{
+                        "files": [
+                            {
+                                "pattern": "jarstaging/(*)",
+                                "target": "maven-remote-libs-release-local/{1}",
+                                "flat": "false",
+                                "props": "${properties}",
+                                "exclusions": ["*.sha1", "*.md5"]
+                            }
+                        ]
+                    }"""
+
+                    def buildInfo = server.upload(uploadSpec)
+                    buildInfo.env.collect()
+                    server.publishBuildInfo(buildInfo)
+
+                    echo '<--------------- Jar Publish Ended --------------->'
+                }
+            }
+        }
+    }
+}
